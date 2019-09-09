@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mailru_oauth_user_denied">Доступ запрещен</string>
+    <string name="mailru_oauth_user_cancelled">Операция отменена</string>
+    <string name="mailru_oauth_network_error">Ошибка сети</string>
+    <string name="mailru_login_with">через Почту</string>
+    <string name="mailru_login_as_user">Войти как %s</string>
+</resources>

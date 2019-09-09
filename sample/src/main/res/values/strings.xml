@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name" translatable="false">Sdk Sample</string>
+    <string name="mailru_oauth_url" translatable="false">https://o2.mail.ru/login</string>
+    <string name="mailru_oauth_scope" translatable="false">userinfo</string>
+    <string name="mailru_oauth_client_id" translatable="false">f77f3e3c1cd142adab5971b7d096e5b6</string>
+    <string name="mailru_oauth_redirect_url" translatable="false">ru.mail.sdk.sample://oauth2redirect</string>
+    <string name="error" translatable="false">Network error</string>
+</resources>

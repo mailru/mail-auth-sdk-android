@@ -1,0 +1,75 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
+android {
+    compileSdkVersion 29
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    signingConfigs {
+        releaseConfig {
+            storeFile file('keystore.jks')
+            storePassword 'qwertyqwe'
+            keyAlias 'key'
+            keyPassword 'qwertyqwe'
+        }
+    }
+
+    defaultConfig {
+        applicationId "ru.mail.sdk.sample"
+        signingConfig signingConfigs.releaseConfig
+        minSdkVersion 21
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    packagingOptions {
+        exclude 'META-INF/proguard/coroutines.pro'
+    }
+
+    android.defaultConfig.manifestPlaceholders = [
+            'MailRuOAuthRedirectHost' : 'oauth2redirect',
+            'MailRuOAuthRedirectScheme' : 'ru.mail.sdk.sample'
+    ]
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.releaseConfig
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+
+        debug {
+            /*
+            In order SDK to work you *must* sign apk with the same key
+            whose SHA256 was added in OAuth Admin panel https://o2.mail.ru/app
+             */
+            signingConfig signingConfigs.releaseConfig
+        }
+    }
+
+}
+
+repositories {
+    google()
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation project(":sdk")
+    testImplementation 'junit:junit:4.12'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.0-RC2'
+    implementation 'io.github.rybalkinsd:kohttp:0.10.0'
+    androidTestImplementation 'androidx.test:runner:1.1.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
+}
