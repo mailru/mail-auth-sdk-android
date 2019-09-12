@@ -1,5 +1,7 @@
 apply plugin: 'com.android.library'
 
+ext.publication = true
+
 android {
     compileSdkVersion 29
 

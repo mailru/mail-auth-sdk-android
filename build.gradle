@@ -9,12 +9,29 @@ buildscript {
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.android.tools.build:gradle:3.2.0'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
     }
 }
 
-allprojects {
+allprojects { project ->
     repositories {
         jcenter()
         google()
+    }
+
+    if (project.name == 'sdk') {
+        configureSdkProject()
+    }
+}
+
+private void configureSdkProject() {
+    apply plugin: 'com.jfrog.bintray'
+    afterEvaluate { project ->
+        if (project.findProperty('publication') && project.hasProperty("libVersionCode")) {
+            println "configuring upload for project ${project.name}"
+            configure(project) {
+                apply from: file("${rootProject.projectDir}/bintray.gradle")
+            }
+        }
     }
 }

@@ -1,0 +1,100 @@
+apply plugin: 'maven-publish'
+
+def versionCode = findProperty("libVersionCode") ?: ''
+if (versionCode.isEmpty()) throw new IllegalStateException("specify version code")
+
+ext {
+    bintrayRepo = 'mailru'
+    bintrayName = 'auth-sdk-pub'
+
+    publishedGroupId = 'ru.mail'
+    libraryName = 'MRAuth SDK'
+    artifact = 'auth-sdk-pub'
+
+    libraryDescription = 'Library for OAuth 2.0 authorization to Mail.ru services'
+
+    siteUrl = 'https://github.com/mailru/mail-auth-sdk-android'
+    gitUrl = 'https://github.com/mailru/mail-auth-sdk-android.git'
+
+    libraryVersion = versionCode
+
+    developerId = 'Mail.ru Group'
+    developerName = 'Mail.ru Group'
+
+    licenseName = 'MIT'
+    licenseUrl = 'http://opensource.org/licenses/MIT'
+    allLicenses = ["MIT"]
+}
+
+publishing {
+    publications {
+        MyPublication(MavenPublication) {
+            // Define this explicitly if using implementation or api configurations
+
+            artifact("$buildDir/outputs/aar/sdk-release.aar")
+            artifact sourcesJar
+            artifact javadocJar
+            groupId publishedGroupId
+            artifactId artifact
+            version libraryVersion
+
+            pom.withXml {
+                final dependenciesNode = asNode().getAt('dependencies')[0] ?: asNode().appendNode('dependencies')
+
+                ext.addDependency = { dep, String scope ->
+                    if (dep.group == null || dep.version == null || dep.name == null || dep.name == "unspecified")
+                        return // ignore invalid dependencies
+
+                    final dependencyNode = dependenciesNode.appendNode('dependency')
+                    dependencyNode.appendNode('groupId', dep.group)
+                    dependencyNode.appendNode('artifactId', dep.name)
+                    dependencyNode.appendNode('version', dep.version)
+                    dependencyNode.appendNode('scope', scope)
+                }
+
+                configurations.api.getDependencies().each { dep -> addDependency(dep, "compile") }
+                configurations.implementation.getDependencies().each { dep -> addDependency(dep, "runtime") }
+            }
+        }
+    }
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.srcDirs
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    configurations.implementation.setCanBeResolved(true)
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator)) + configurations.implementation
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+bintray {
+    user = findProperty('bintray.user')
+    key = findProperty('bintray.apikey')
+
+    publications = ['MyPublication']
+    pkg {
+        repo = bintrayRepo
+        name = bintrayName
+        desc = libraryDescription
+        websiteUrl = siteUrl
+        vcsUrl = gitUrl
+        licenses = allLicenses
+        dryRun = true
+        publish = true
+        publicDownloadNumbers = true
+        version {
+            name = libraryVersion
+            desc = libraryDescription
+        }
+    }
+}
+
+bintrayUpload.dependsOn assemble
