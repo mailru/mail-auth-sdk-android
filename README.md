@@ -38,7 +38,7 @@ val fingerprint = Utils.getCertificateFingerprint(context, "ru.mail.sdk.sample",
     }
     
     dependencies {
-       implementation ('ru.mail:auth-sdk-pub:10.7.0.27801@aar')
+       implementation ('ru.mail:auth-sdk-pub:10.7.0.27801')
     }
     ``` 
 
