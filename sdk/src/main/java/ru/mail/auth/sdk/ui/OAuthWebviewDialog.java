@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.net.http.SslError;
 import androidx.annotation.Nullable;
+
+import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -22,6 +24,7 @@ import ru.mail.auth.sdk.OAuthRequest;
 import ru.mail.auth.sdk.MailRuAuthSdk;
 import ru.mail.auth.sdk.OAuthParams;
 import ru.mail.auth.sdk.OAuthResponse;
+import ru.mail.auth.sdk.pub.BuildConfig;
 import ru.mail.auth.sdk.pub.R;
 
 
@@ -96,7 +99,9 @@ public class OAuthWebviewDialog {
             mWebView.getSettings().setUserAgentString(mUserAgent);
         }
 
-        WebView.setWebContentsDebuggingEnabled(MailRuAuthSdk.getInstance().isDebugEnabled());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            WebView.setWebContentsDebuggingEnabled(MailRuAuthSdk.getInstance().isDebugEnabled());
+        }
 
         mWebView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         mWebView.getSettings().setJavaScriptEnabled(true);

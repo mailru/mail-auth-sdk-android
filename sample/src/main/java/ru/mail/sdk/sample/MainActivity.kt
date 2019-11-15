@@ -10,14 +10,11 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import io.github.rybalkinsd.kohttp.dsl.httpPost
 import kotlinx.coroutines.*
-import org.json.JSONException
-import org.json.JSONObject
-import ru.mail.auth.sdk.AuthError
-import ru.mail.auth.sdk.AuthResult
-import ru.mail.auth.sdk.MailRuAuthSdk
-import ru.mail.auth.sdk.MailRuCallback
+import ru.mail.auth.sdk.*
+import ru.mail.auth.sdk.api.OAuthRequestErrorCodes
+import ru.mail.auth.sdk.api.token.OAuthTokensResult
+import ru.mail.auth.sdk.api.user.UserInfoResult
 import java.net.URL
 import kotlin.coroutines.CoroutineContext
 
@@ -43,7 +40,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (!MailRuAuthSdk.getInstance().handleActivityResult(
+        if (!MailRuAuthSdk.getInstance().handleAuthResult(
                 requestCode,
                 resultCode,
                 data,
@@ -54,33 +51,43 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         }
     }
 
-    private inner class SDKResultCallback : MailRuCallback<AuthResult, AuthError> {
-        override fun onResult(result: AuthResult) {
-            Log.d("SDK", "code: ${result.authCode}")
 
-            launch {
-                val userInfo = withContext(Dispatchers.IO) {
-                    val token = getAccessToken(result.authCode, result.codeVerifier)
-                    return@withContext getUserInfo(token)
-                }
-                bindUserInfo(userInfo)
-            }
+    inner class SDKResultCallback : MailRuCallback<OAuthTokensResult, Int> {
+        override fun onResult(result: OAuthTokensResult) {
+            print(result.accessToken)
+            MailRuAuthSdk.getInstance().requestUserInfo(result, UserInfoCallback())
         }
 
-        override fun onError(error: AuthError?) {
-            Toast.makeText(this@MainActivity, error?.errorReason, Toast.LENGTH_SHORT).show()
+        override fun onError(error: Int) {
+            Toast.makeText(
+                applicationContext,
+                OAuthRequestErrorCodes.toReadableString(error),
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
-    private suspend fun bindUserInfo(userInfo: UserInfo?) {
-        if (userInfo != null) {
-            findViewById<TextView>(R.id.name).text = userInfo.name
-            findViewById<TextView>(R.id.email).text = userInfo.email
-            loadImage(userInfo.avatar)?.let { drawable ->
-                findViewById<ImageView>(R.id.avatar).setImageDrawable(drawable)
+    private inner class UserInfoCallback : MailRuCallback<UserInfoResult, Int> {
+        override fun onError(error: Int) {
+            Toast.makeText(
+                applicationContext,
+                OAuthRequestErrorCodes.toReadableString(error),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        override fun onResult(result: UserInfoResult) {
+            launch {
+                bindUserInfo(result)
             }
-        } else {
-            findViewById<TextView>(R.id.name).text = getString(R.string.error)
+        }
+    }
+
+    private suspend fun bindUserInfo(userInfo: UserInfoResult) {
+        findViewById<TextView>(R.id.name).text = userInfo.name
+        findViewById<TextView>(R.id.email).text = userInfo.email
+        loadImage(userInfo.avatarUrl)?.let { drawable ->
+            findViewById<ImageView>(R.id.avatar).setImageDrawable(drawable)
         }
     }
 
@@ -96,57 +103,4 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
             null
         }
     }
-
-    private fun getAccessToken(
-        authCode: String,
-        codeVerifier: String?
-    ): String {
-        val clientSecret = "f7b771d84bd14b5f81b9937911682214" // Keep this secret on server-side
-        val resp = httpPost {
-            val params = MailRuAuthSdk.getInstance().oAuthParams
-            scheme = "https"
-            host = "oauth.mail.ru"
-            path = "/token"
-
-            body {
-                form {
-                    "code" to authCode
-                    "client_id" to params.clientId
-                    "client_secret" to clientSecret
-                    "grant_type" to "authorization_code"
-                    "redirect_uri" to params.redirectUrl
-                    codeVerifier?.let {
-                        "code_verifier" to it
-                    }
-                }
-            }
-        }
-        return JSONObject(resp.body()!!.string()).optString("access_token")
-    }
-
-    private fun getUserInfo(accessToken: String): UserInfo? {
-        return try {
-            val resp = httpPost {
-                scheme = "https"
-                host = "oauth.mail.ru"
-                path = "/userinfo"
-
-                body {
-                    form {
-                        "access_token" to accessToken
-                    }
-                }
-            }
-            val info = JSONObject(resp.body()!!.string())
-            UserInfo(
-                info.optString("name"),
-                info.getString("email"),
-                info.optString("image")
-            )
-        } catch (e: JSONException) {
-            null
-        }
-    }
-
-    data class UserInfo(val name: String, val email: String, val avatar: String)
 }

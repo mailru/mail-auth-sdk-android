@@ -19,7 +19,8 @@
             android:layout_height="80dp"
             android:layout_alignParentStart="true"
             android:contentDescription="user pic"
-            tools:src="@tools:sample/avatars" />
+            tools:src="@tools:sample/avatars"
+            android:layout_alignParentLeft="true" />
 
         <TextView
             android:id="@+id/name"
@@ -27,7 +28,8 @@
             android:layout_height="wrap_content"
             android:layout_toEndOf="@id/avatar"
             android:textSize="24sp"
-            tools:text="Example Name" />
+            tools:text="Example Name"
+            android:layout_toRightOf="@id/avatar" />
 
         <TextView
             android:id="@+id/email"
@@ -36,7 +38,8 @@
             android:layout_below="@id/name"
             android:layout_toEndOf="@id/avatar"
             android:textSize="24sp"
-            tools:text="sample@example.com" />
+            tools:text="sample@example.com"
+            android:layout_toRightOf="@id/avatar" />
 
     </RelativeLayout>
 

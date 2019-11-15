@@ -20,7 +20,9 @@ public class RedirectReceiverActivity extends Activity{
     private Intent createResponseHandlingIntent() {
         Uri uri = getIntent().getData();
         Intent intent = new Intent(this, MailRuSdkServiceActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                | Intent.FLAG_ACTIVITY_SINGLE_TOP
+                | Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra(EXTRA_URI, uri);
         return intent;
     }

@@ -1,8 +1,10 @@
 package ru.mail.auth.sdk;
 
+import androidx.annotation.NonNull;
+
 public interface MailRuCallback<Result, Error> {
 
-    void onResult(Result result);
+    void onResult(@NonNull Result result);
 
-    void onError(Error error);
+    void onError(@NonNull Error error);
 }

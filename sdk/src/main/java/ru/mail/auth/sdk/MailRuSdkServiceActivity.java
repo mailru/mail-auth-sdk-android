@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -56,7 +57,8 @@ public class MailRuSdkServiceActivity extends Activity implements OAuthWebviewDi
     private boolean shouldUseExternalBrowser() {
         MailRuAuthSdk sdk = MailRuAuthSdk.getInstance();
         String redirectUrl = sdk.getOAuthParams().getRedirectUrl();
-        return !redirectUrl.startsWith("http"); // only custom scheme redirects i.e. "ru.mail://redirect" are supported.
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT // only from KitKat browser flow is stable.
+                && !redirectUrl.startsWith("http"); // only custom scheme redirects i.e. "ru.mail://redirect" are supported.
     }
 
     private void showOAuthDialog() {

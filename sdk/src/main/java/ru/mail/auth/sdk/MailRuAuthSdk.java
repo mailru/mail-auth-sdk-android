@@ -6,8 +6,15 @@ import android.content.Intent;
 import android.os.Looper;
 
 import androidx.annotation.IntDef;
+import androidx.annotation.NonNull;
 import androidx.annotation.UiThread;
 import androidx.fragment.app.Fragment;
+import ru.mail.auth.sdk.api.ApiManager;
+import ru.mail.auth.sdk.api.CommonErrorCodes;
+import ru.mail.auth.sdk.api.OAuthRequestErrorCodes;
+import ru.mail.auth.sdk.api.token.InMemoryTokensStorage;
+import ru.mail.auth.sdk.api.token.OAuthTokensResult;
+import ru.mail.auth.sdk.api.user.UserInfoResult;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -39,7 +46,7 @@ public class MailRuAuthSdk {
         }
     }
 
-    public void setRequestCodeOffest(int offset) {
+    public void setRequestCodeOffset(int offset) {
         mRequestCodeOffset = offset;
     }
 
@@ -89,7 +96,48 @@ public class MailRuAuthSdk {
         MailRuSdkServiceActivity.login(fragment, RequestCodeOffset.LOGIN);
     }
 
-    public boolean handleActivityResult(int requestCode, int resultCode, Intent data, MailRuCallback<AuthResult, AuthError> callback) {
+    public void requestOAuthTokens(AuthResult authResult,
+                                   MailRuCallback<OAuthTokensResult, Integer> callback) {
+        ApiManager.getAccessToken(authResult.getAuthCode(), authResult.getCodeVerifier(), callback);
+    }
+
+    public void requestUserInfo(OAuthTokensResult result,
+                                MailRuCallback<UserInfoResult, Integer> callback) {
+        ApiManager.getUserInfo(new InMemoryTokensStorage(result.getAccessToken(), result.getRefreshToken()), callback);
+    }
+
+    public boolean handleAuthResult(int requestCode,
+                                    @Status int resultCode,
+                                    Intent data,
+                                    final MailRuCallback<OAuthTokensResult, Integer> callback) {
+        return handleActivityResult(requestCode, resultCode, data, new MailRuCallback<AuthResult, AuthError>() {
+            @Override
+            public void onResult(@NonNull AuthResult authResult) {
+                requestOAuthTokens(authResult, new MailRuCallback<OAuthTokensResult, Integer>() {
+                    @Override
+                    public void onResult(@NonNull OAuthTokensResult oAuthTokensResult) {
+                        callback.onResult(oAuthTokensResult);
+                    }
+
+                    @Override
+                    public void onError(@NonNull Integer integer) {
+                        callback.onError(integer);
+                    }
+                });
+            }
+
+            @Override
+            public void onError(@NonNull AuthError authError) {
+                callback.onError(authError == AuthError.NETWORK_ERROR ?
+                        CommonErrorCodes.NETWORK_ERROR : CommonErrorCodes.REQUEST_CANCELLED);
+            }
+        });
+    }
+
+    public boolean handleActivityResult(int requestCode,
+                                        @Status int resultCode,
+                                        Intent data,
+                                        MailRuCallback<AuthResult, AuthError> callback) {
         if (requestCode == getLoginRequestCode()) {
             String code = data != null ? data.getStringExtra(MailRuSdkServiceActivity.AUTH_RESULT_EXTRA) : "";
             String codeVerifier = data != null ? data.getStringExtra(MailRuSdkServiceActivity.AUTH_RESULT_EXTRA_CODE_VERIFIER) : null;
@@ -105,5 +153,6 @@ public class MailRuAuthSdk {
 
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({STATUS_OK, STATUS_ERROR, STATUS_ACCESS_DENIED, STATUS_CANCELLED})
-    public @interface Status {}
+    public @interface Status {
+    }
 }

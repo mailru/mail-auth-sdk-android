@@ -8,5 +8,6 @@ class SampleApplication: Application() {
     override fun onCreate() {
         super.onCreate()
         MailRuAuthSdk.initialize(this)
+        MailRuAuthSdk.getInstance().isDebugEnabled = true
     }
 }
