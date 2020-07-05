@@ -7,6 +7,7 @@ import android.os.Looper;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.fragment.app.Fragment;
 import ru.mail.auth.sdk.api.ApiManager;
@@ -31,6 +32,7 @@ public class MailRuAuthSdk {
     private int mRequestCodeOffset = 4000;
     private final Context mContext;
     private volatile boolean mDebugEnabled;
+    private Analytics mAnalytics = new StubAnalytics();
 
     private MailRuAuthSdk(Context context) {
         mContext = context;
@@ -52,6 +54,14 @@ public class MailRuAuthSdk {
 
     int getRequestCodeOffset() {
         return mRequestCodeOffset;
+    }
+
+    void setAnalytics(Analytics analytics) {
+        mAnalytics = analytics;
+    }
+
+    public Analytics getAnalytics() {
+        return mAnalytics;
     }
 
     public int getLoginRequestCode() {
@@ -84,15 +94,17 @@ public class MailRuAuthSdk {
         mOAuthParams = params;
     }
 
-    Context getContext() {
+    public Context getContext() {
         return mContext;
     }
 
     public void startLogin(Activity activity) {
+        mAnalytics.onLoginStarted(null);
         MailRuSdkServiceActivity.login(activity, RequestCodeOffset.LOGIN);
     }
 
     public void startLogin(Fragment fragment) {
+        mAnalytics.onLoginStarted(null);
         MailRuSdkServiceActivity.login(fragment, RequestCodeOffset.LOGIN);
     }
 
@@ -139,16 +151,30 @@ public class MailRuAuthSdk {
                                         Intent data,
                                         MailRuCallback<AuthResult, AuthError> callback) {
         if (requestCode == getLoginRequestCode()) {
-            String code = data != null ? data.getStringExtra(MailRuSdkServiceActivity.AUTH_RESULT_EXTRA) : "";
-            String codeVerifier = data != null ? data.getStringExtra(MailRuSdkServiceActivity.AUTH_RESULT_EXTRA_CODE_VERIFIER) : null;
+            String code = hasExtra(data, MailRuSdkServiceActivity.AUTH_RESULT_EXTRA) ?
+                    data.getStringExtra(MailRuSdkServiceActivity.AUTH_RESULT_EXTRA) : "";
+
+            String codeVerifier = hasExtra(data, MailRuSdkServiceActivity.AUTH_RESULT_EXTRA_CODE_VERIFIER)
+                    ? data.getStringExtra(MailRuSdkServiceActivity.AUTH_RESULT_EXTRA_CODE_VERIFIER) : null;
+
+            Analytics.Type from = hasExtra(data, MailRuSdkServiceActivity.EXTRA_AUTH_TYPE) ?
+                    (Analytics.Type) data.getSerializableExtra(MailRuSdkServiceActivity.EXTRA_AUTH_TYPE) : Analytics.Type.WEB;
+
             if (resultCode == MailRuAuthSdk.STATUS_OK) {
+                mAnalytics.onLoginSuccess(from);
                 callback.onResult(new AuthResult(code, codeVerifier));
             } else {
-                callback.onError(AuthError.fromCode(resultCode));
+                AuthError error = AuthError.fromCode(resultCode);
+                mAnalytics.onLoginFailed(from, error.name());
+                callback.onError(error);
             }
             return true;
         }
         return false;
+    }
+
+    private boolean hasExtra(@Nullable Intent intent, String extraName) {
+        return intent != null && intent.hasExtra(extraName);
     }
 
     @Retention(RetentionPolicy.SOURCE)

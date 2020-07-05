@@ -7,7 +7,7 @@ import ru.mail.auth.sdk.call.CallException;
 
 public abstract class BaseAuthResponseProcessor<T> implements ResponseProcessor<T> {
     @Override
-    public final T process(String response) throws CallException {
+    public final T process(int code, String response) throws CallException {
         try {
             JSONObject jsonObject = new JSONObject(response);
             if (jsonObject.has("error")) {

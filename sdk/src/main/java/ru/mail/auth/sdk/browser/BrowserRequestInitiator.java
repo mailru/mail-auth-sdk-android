@@ -45,7 +45,6 @@ public class BrowserRequestInitiator {
             intent = new Intent(Intent.ACTION_VIEW);
         }
         intent.setPackage(browserDescriptor.packageName);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.setData(request.toUri());
         context.startActivity(intent);
     }

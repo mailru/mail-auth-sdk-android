@@ -27,10 +27,12 @@ public class MailRuSdkServiceActivity extends Activity implements OAuthWebviewDi
     public static final String AUTH_RESULT_EXTRA_CODE_VERIFIER = "ru.mail.auth.sdk.EXTRA_RESULT_CODE_VERIFIER";
     public static final String EXTRA_LOGIN = "ru.mail.auth.sdk.EXTRA_LOGIN";
     public static final String AUTH_STARTED = "auth_started";
+    public static final String EXTRA_AUTH_TYPE = "ru.mail.auth.sdk.EXTRA_AUTH_TYPE";
 
     private BrowserRequestInitiator mBrowserRequestInitiator = new BrowserRequestInitiator();
     private OAuthRequest mBrowserOAuthRequest;
     private boolean mBrowserAuthStarted;
+    private Analytics.Type mAuthType = Analytics.Type.WEB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,12 +40,15 @@ public class MailRuSdkServiceActivity extends Activity implements OAuthWebviewDi
 
         if (savedInstanceState != null) {
             mBrowserAuthStarted = savedInstanceState.getBoolean(AUTH_STARTED);
+            mAuthType = (Analytics.Type) savedInstanceState.getSerializable(EXTRA_AUTH_TYPE);
         } else {
             if (TextUtils.equals(getIntent().getAction(), ACTION_LOGIN)) {
                 if (Utils.hasMailApp(getApplicationContext())) {
+                    MailRuAuthSdk.getInstance().getAnalytics().onLoginStarted(mAuthType = Analytics.Type.APP);
                     startActivityForResult(Utils.getMailAppLoginFlowIntent(getIntent().getStringExtra(EXTRA_LOGIN)),
                             RequestCodeOffset.LOGIN.toRequestCode());
                 } else {
+                    MailRuAuthSdk.getInstance().getAnalytics().onLoginStarted(mAuthType = Analytics.Type.WEB);
                     if (shouldUseExternalBrowser()) {
                         createBrowserRequest();
                     } else {
@@ -139,11 +144,16 @@ public class MailRuSdkServiceActivity extends Activity implements OAuthWebviewDi
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putBoolean(AUTH_STARTED, mBrowserAuthStarted);
+        outState.putSerializable(EXTRA_AUTH_TYPE, mAuthType);
         super.onSaveInstanceState(outState);
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (data == null) {
+            data = new Intent();
+        }
+        data.putExtra(EXTRA_AUTH_TYPE, mAuthType);
         setResult(resultCode, data);
         finish();
     }

@@ -6,7 +6,6 @@ import android.text.TextUtils;
 import android.util.Base64;
 
 import java.nio.charset.Charset;
-import java.security.SecureRandom;
 
 public class OAuthRequest {
     private static final int CODE_VERIFIER_LEN = 32;
@@ -51,7 +50,7 @@ public class OAuthRequest {
 
         if (mOAuthParams.isUseCodeChallenge()) {
             builder.appendQueryParameter("code_challenge_method", "S256");
-            builder.appendQueryParameter("code_challenge", calculateCodeChallenge());
+            builder.appendQueryParameter("code_challenge", calculateCodeChallenge(mCodeVerifier));
         }
 
         builder.appendQueryParameter("state", mState);
@@ -59,29 +58,22 @@ public class OAuthRequest {
     }
 
     private static String generateState() {
-        return Utils.toHex(generateRandomBytes(STATE_LEN));
+        return Utils.toHex(Utils.generateRandomBytes(STATE_LEN));
     }
 
-    private static String generateCodeVerifier() {
-        return encodeToSafeUrl(generateRandomBytes(CODE_VERIFIER_LEN));
+    public static String generateCodeVerifier() {
+        return encodeToSafeUrl(Utils.generateRandomBytes(CODE_VERIFIER_LEN));
     }
 
     private static String encodeToSafeUrl(byte[] bytes) {
         return Base64.encodeToString(bytes, Base64.URL_SAFE | Base64.NO_PADDING | Base64.NO_WRAP);
     }
 
-    private String calculateCodeChallenge() {
+    public static String calculateCodeChallenge(String codeVerifier) {
         return encodeToSafeUrl(Utils.generateDigest(
-                mCodeVerifier.getBytes(Charset.defaultCharset()),
+                codeVerifier.getBytes(Charset.defaultCharset()),
                 Utils.DigestAlgorithm.SHA256));
     }
-
-    private static byte[] generateRandomBytes(int count) {
-        byte[] bytes = new byte[count];
-        new SecureRandom().nextBytes(bytes);
-        return bytes;
-    }
-
 
     public String getState() {
         return mState;

@@ -13,12 +13,13 @@ import android.text.TextUtils;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.List;
 
 public class Utils {
     private static final String MAIL_APP_PKG = "ru.mail.mailapp";
     private static final String MAIL_APP_SHA_FINGERPRINT = "FD6FC8C7D83723725A81C1AE81E9965E0E91A632855D708C774EDD8879DDE0B1";
-    private static final String MAIL_APP_ACTION_LOGIN = "ru.mail.auth.sdk.OAUTH_LOGIN_V1";
+    private static final String MAIL_APP_ACTION_LOGIN = "ru.mail.auth.sdk.OAUTH_LOGIN_V2";
 
     static boolean hasMailApp(Context c) {
         boolean isAppExists = isAppInstalled(c, MAIL_APP_PKG);
@@ -98,6 +99,17 @@ public class Utils {
         return new byte[0];
     }
 
+    public static byte[] generateRandomBytes(int count) {
+        byte[] bytes = new byte[count];
+        new SecureRandom().nextBytes(bytes);
+        return bytes;
+    }
+
+    public static String toHex(byte[] bytes) {
+        BigInteger bi = new BigInteger(1, bytes);
+        return String.format("%0" + (bytes.length << 1) + "X", bi);
+    }
+
     public enum DigestAlgorithm {
         SHA1("SHA-1"),
         SHA256("SHA-256");
@@ -111,10 +123,5 @@ public class Utils {
         String getName() {
             return mName;
         }
-    }
-
-    public static String toHex(byte[] bytes) {
-        BigInteger bi = new BigInteger(1, bytes);
-        return String.format("%0" + (bytes.length << 1) + "X", bi);
     }
 }

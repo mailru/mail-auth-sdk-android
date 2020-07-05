@@ -23,6 +23,6 @@ public class NetworkErrorRetry<R> extends BaseRetryMethodCall<R> {
     }
 
     protected boolean handleException(CallException e) {
-        return e.isNetworkError();
+        return e.isNetworkError() || e.isInternalServerError();
     }
 }

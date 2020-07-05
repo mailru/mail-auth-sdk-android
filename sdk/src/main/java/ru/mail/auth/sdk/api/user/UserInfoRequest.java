@@ -38,7 +38,7 @@ public class UserInfoRequest extends ApiCommand<UserInfoResult> {
             String email = jsonObject.optString("email");
             String name = jsonObject.optString("name");
             String image = jsonObject.optString("image");
-            String id = jsonObject.getString("id");
+            String id = jsonObject.optString("id");
             return new UserInfoResult(name, image, email, id);
         }
     }

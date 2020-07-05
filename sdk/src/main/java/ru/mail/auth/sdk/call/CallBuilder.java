@@ -3,7 +3,7 @@ package ru.mail.auth.sdk.call;
 import ru.mail.auth.sdk.api.token.TokenExpiredListener;
 
 public class CallBuilder<R> {
-    MethodCall<R> mCall;
+    private MethodCall<R> mCall;
 
     private CallBuilder(MethodCall<R> call) {
         mCall = call;
