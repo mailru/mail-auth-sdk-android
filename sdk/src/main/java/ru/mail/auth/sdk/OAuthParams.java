@@ -6,6 +6,8 @@ import androidx.annotation.Keep;
 import androidx.annotation.Nullable;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import ru.mail.auth.sdk.pub.R;
 
@@ -17,6 +19,7 @@ public class OAuthParams implements Serializable {
     private final String mRedirectUrl;
     private final String mScope;
     private final String mClientId;
+    private final Map<String, String> additionalParams = new HashMap<>();
     private final boolean mIsUseCodeChallenge;
 
     OAuthParams(Context context) {
@@ -45,6 +48,11 @@ public class OAuthParams implements Serializable {
                                           String clientId,
                                           boolean isUseCodeChallenge) {
         return new OAuthParams(authUrl, redirectUrl, scope, clientId, isUseCodeChallenge);
+    }
+
+    public void setAdditionalParams(Map<String, String> additionalParams) {
+        this.additionalParams.clear();
+        this.additionalParams.putAll(additionalParams);
     }
 
     @Nullable
@@ -80,5 +88,9 @@ public class OAuthParams implements Serializable {
 
     public boolean isUseCodeChallenge() {
         return mIsUseCodeChallenge;
+    }
+
+    public Map<String, String> getAdditionalParams() {
+        return new HashMap<>(additionalParams);
     }
 }

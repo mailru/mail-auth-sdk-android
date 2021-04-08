@@ -19,6 +19,7 @@ import ru.mail.auth.sdk.api.user.UserInfoResult;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Map;
 
 public class MailRuAuthSdk {
     public static final int STATUS_OK = Activity.RESULT_OK;
@@ -103,7 +104,19 @@ public class MailRuAuthSdk {
         MailRuSdkServiceActivity.login(activity, RequestCodeOffset.LOGIN);
     }
 
+    public void startLogin(Activity activity, Map<String, String> additionalOAuthParams) {
+        getOAuthParams().setAdditionalParams(additionalOAuthParams);
+        mAnalytics.onLoginStarted(null);
+        MailRuSdkServiceActivity.login(activity, RequestCodeOffset.LOGIN);
+    }
+
     public void startLogin(Fragment fragment) {
+        mAnalytics.onLoginStarted(null);
+        MailRuSdkServiceActivity.login(fragment, RequestCodeOffset.LOGIN);
+    }
+
+    public void startLogin(Fragment fragment, Map<String, String> additionalOAuthParams) {
+        getOAuthParams().setAdditionalParams(additionalOAuthParams);
         mAnalytics.onLoginStarted(null);
         MailRuSdkServiceActivity.login(fragment, RequestCodeOffset.LOGIN);
     }
