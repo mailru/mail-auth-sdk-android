@@ -1,11 +1,13 @@
 package ru.mail.auth.sdk;
 
 import android.net.Uri;
-import androidx.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Base64;
 
+import androidx.annotation.Nullable;
+
 import java.nio.charset.Charset;
+import java.util.Map;
 
 public class OAuthRequest {
     private static final int CODE_VERIFIER_LEN = 32;
@@ -43,6 +45,11 @@ public class OAuthRequest {
         builder.appendQueryParameter("redirect_uri", mOAuthParams.getRedirectUrl());
         builder.appendQueryParameter("response_type", "code");
         builder.appendQueryParameter("client", "mobile.app");
+
+        Map<String, String> additionalParams = mOAuthParams.getAdditionalParams();
+        for (String key : additionalParams.keySet()) {
+            builder.appendQueryParameter(key, additionalParams.get(key));
+        }
 
         if (!TextUtils.isEmpty(mPreferredLogin)) {
             builder.appendQueryParameter("login", mPreferredLogin);
