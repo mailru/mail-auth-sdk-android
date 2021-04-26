@@ -7,11 +7,9 @@
         <activity
             android:name="ru.mail.auth.sdk.MailRuSdkServiceActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
-            android:theme="@style/Transparent" />
-        <activity
-            android:name="ru.mail.auth.sdk.RedirectReceiverActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
-            android:theme="@style/Transparent">
+            android:theme="@style/Transparent"
+            android:launchMode="singleTask">
+
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
