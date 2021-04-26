@@ -99,7 +99,7 @@ public class MailRuSdkServiceActivity extends Activity implements OAuthWebviewDi
             } else {
                 Intent intent = getIntent();
                 if (intent != null) {
-                    Uri uri = intent.getParcelableExtra(RedirectReceiverActivity.EXTRA_URI);
+                    Uri uri = intent.getData();
                     OAuthResponse response = OAuthResponse.from(mBrowserOAuthRequest, uri);
                     onAuthResult(response.getResultCode(), packResult(response.getResult(), mBrowserOAuthRequest.getCodeVerifier()));
                 }
